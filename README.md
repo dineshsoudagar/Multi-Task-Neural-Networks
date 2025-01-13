@@ -1,7 +1,5 @@
 # Evaluation of Multi Vs. Single-task Neural Networks for Autonomous Driving Perception
 
-## Abstract
-
 A Multi-Task Neural Network (MTNN) enables a single network to solve multiple tasks simultaneously, offering efficiency
 and performance improvements over Single-Task Neural Networks (STNNs). This thesis evaluates MTNNs against STNNs for
 four autonomous driving perception tasks: semantic segmentation, lane marking, drivable area detection, and object
