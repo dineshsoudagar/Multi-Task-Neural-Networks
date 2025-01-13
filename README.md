@@ -24,7 +24,7 @@ STNNs and MTNNs for autonomous driving perception tasks.
 
 ### Model Architecture
 
-![Alt text](docs/MTNN architecture.png "MTNN Architecture")
+![Alt text](docs/MTNN_architecture.png "MTNN Architecture")
 
 
 ## Features
