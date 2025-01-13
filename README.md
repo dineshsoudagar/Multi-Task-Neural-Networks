@@ -55,10 +55,12 @@ Install the required dependencies:
 
 
 
-###Key findings from the thesis:
+### Key findings from the thesis
+
 Below is a summary of all studies conducted using MTNNs and their results. For a comprehensive analysis and detailed information, please refer to the full [thesis report](Thesis_report.pdf).
 
-####Accuracy
+#### Accuracy
+
 The accuracy of MTNN for all combinations is shown below. The green cells
 represent an increase in accuracy for a single task in that multi-task combination, whereas the red
 cells represent a decrease in accuracy. The deviation of each accuracy from its corresponding STNN
@@ -68,7 +70,8 @@ the last column.
 
 ![Alt text](docs/MTNN_results.png "MTNN results")
 
-####Inference time
+#### Inference time
+
 - MTNNs are up to 33% faster in inference compared to STNNs. 
 - Refer below table for detailed result.
 ![Alt text](docs/MTNN_inference.png "MTNN results")
