@@ -17,16 +17,16 @@ STNNs and MTNNs for autonomous driving perception tasks.
 ### Directory Structure
 ```
 ├── src/ # Python scripts for the project 
-│ ├── main.py # Entry point of the project
-│ ├── stnn.py # Single-task neural network implementation
-│ ├── mtnn.py # Multi-task neural network implementation 
-│ └── utils.py # Utility functions for data processing and evaluation 
-├── data/ # Placeholder for datasets (not included due to size) 
 ├── requirements.txt # List of Python dependencies 
 ├── README.md # Project documentation 
-├── LICENSE # License for this repository 
 └── .gitignore # Files/folders to exclude from the repository
 ```
+
+### Model Architecture
+
+![Alt text](docs/MTNN architecture.png "MTNN Architecture")
+
+
 ## Features
  - Implementation of STNNs and MTNNs using PyTorch.
  - Tasks supported:
@@ -37,8 +37,6 @@ STNNs and MTNNs for autonomous driving perception tasks.
  - Use of the Audi Autonomous Driving Dataset (A2D2).
  - Custom loss weighing and optimization techniques.
  - Training scripts and evaluation metrics for comparison.
-
-## Installation
 
 ### Prerequisites
 - Python 3.8+
@@ -55,31 +53,7 @@ Install the required dependencies:
  pip install -r requirements.txt
  ``` 
 
- 
-### Usage
-- Dataset Preparation Download the A2D2 dataset from here. 
-- Preprocess the dataset using the utils.py script in the src/ folder.
-bash
-Copy code
-python src/utils.py --preprocess --data_path /path/to/a2d2
-Training
-Train the STNN and MTNN models using the provided scripts:
 
-For STNN:
-bash
-
-python src/stnn.py --task segmentation
-For MTNN:
-bash
-Copy code
-python src/mtnn.py --tasks segmentation lane_detection
-Evaluation
-Evaluate the trained models and compare the results:
-
-bash
-Copy code
-python src/evaluate.py --model_path /path/to/model.pth
-Results
 
 ###Key findings from the thesis:
 - MTNNs are up to 33% faster in inference compared to STNNs. 
