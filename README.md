@@ -24,6 +24,9 @@ STNNs and MTNNs for autonomous driving perception tasks.
 
 ### Model Architecture
 
+A shared trunk type multi-task model that solves semantic segmentation, lane marking,
+drivable area, object detection tasks simultaneously.
+
 ![Alt text](docs/MTNN_architecture.png "MTNN Architecture")
 
 
@@ -34,7 +37,6 @@ STNNs and MTNNs for autonomous driving perception tasks.
    - Lane Marking
    - Drivable Area Detection
    - Object Detection
- - Use of the Audi Autonomous Driving Dataset (A2D2).
  - Custom loss weighing and optimization techniques.
  - Training scripts and evaluation metrics for comparison.
 
@@ -56,13 +58,27 @@ Install the required dependencies:
 
 
 ###Key findings from the thesis:
+Below is a summary of all studies conducted using MTNNs and their results. For a comprehensive analysis and detailed information, please refer to the full [thesis report](Thesis_report.pdf).
+
+####Accuracy
+The accuracy of MTNN for all combinations is shown below. The green cells
+represent an increase in accuracy for a single task in that multi-task combination, whereas the red
+cells represent a decrease in accuracy. The deviation of each accuracy from its corresponding STNN
+is indicated in brackets. The accuracy mentioned in bold indicates the maximum improvement
+of that single task accuracy. The training stage from which the results are collected is shown in
+the last column.
+
+![Alt text](docs/MTNN_results.png "MTNN results")
+
+####Inference time
 - MTNNs are up to 33% faster in inference compared to STNNs. 
-- Improved accuracy:
-  - Semantic Segmentation: +1%
-  - Lane Marking: +2.5% 
-  - Drivable Area Detection: +1.5% 
-  - Object Detection: +12%
+- Refer below table for detailed result.
+![Alt text](docs/MTNN_inference.png "MTNN results")
+  Inference time mentioned under single task is the sum of
+inference time of individual task in the MTNN combination
+
+#### Transfer learning capability
+
 - Transfer learning with MTNN’s shared encoder improved STNN accuracy by up to 2%.
 Contributing
 
-Thank you for your interest in this project! If you find it helpful, please star the repository on GitHub.
