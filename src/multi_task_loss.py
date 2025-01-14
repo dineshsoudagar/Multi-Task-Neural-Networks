@@ -7,41 +7,67 @@ import torch.nn as nn
 from utils import intersection_over_union
 
 
-# DEVICE = "cuda:1" if torch.cuda.is_available() else "cpu"
-
-
-class Multi_task_loss_fn(nn.Module):
+class MultiTaskLossFn(nn.Module):
+    """
+    Multi-task loss function for various tasks such as semantic segmentation, lane marking, drivable area detection,
+    and object detection. Supports weighted losses for different tasks.
+    """
 
     def __init__(self, tasks=None, scaled_anchors=None, DEVICE="cuda", WEIGHTED=False):
-        super(Multi_task_loss_fn, self).__init__()
-        self.tasks = tasks  # same as tasks mentioned in train.py file
-        self.scaled_anchors = scaled_anchors  # predefined anchors in train.py
-        self.device = DEVICE  # "cuda" or "cpu"
-        self.weighted = WEIGHTED  # If True calculates weights for each task
+        """
+        Initializes the multi-task loss function.
+
+        Args:
+            tasks (list): List of tasks with their types and classes, e.g., [("semantic_segmentation", num_classes), ...].
+            scaled_anchors (list): Anchors used for YOLO loss calculations.
+            DEVICE (str): Device to use ("cuda" or "cpu").
+            WEIGHTED (bool): Whether to calculate and apply weights for each task.
+        """
+        super(MultiTaskLossFn, self).__init__()
+        self.tasks = tasks
+        self.scaled_anchors = scaled_anchors
+        self.device = DEVICE
+        self.weighted = WEIGHTED
         self.mse = nn.MSELoss()
+
         for task in self.tasks:
             if task[0] == "semantic_segmentation":
-                self.seg_loss = WCE_L(num_classes=task[1], DEVICE=self.device)  # Initializing the segmentation loss
+                self.seg_loss = WCE_L(num_classes=task[1], DEVICE=self.device)
             elif task[0] == "lane_marking":
                 self.lane_loss = WCE_L(num_classes=task[1], DEVICE=self.device)
             elif task[0] == "drivable_area":
                 self.drivable_loss = WCE_L(num_classes=task[1], DEVICE=self.device)
-            if task[0] == "object_detection":
-                self.yolo_loss = YoloLoss()  # Initializing YOLOv3 loss
+            elif task[0] == "object_detection":
+                self.yolo_loss = YoloLoss()
 
     def forward(self, preds, targets, features):
+        """
+        Forward pass to compute the total loss.
 
+        Args:
+            preds (dict): Predictions for each task.
+            targets (dict): Ground truth for each task.
+            features (dict): Feature maps for each task.
+
+        Returns:
+            tuple: Total loss, individual task losses, and feature losses.
+        """
+        # Compute average feature map across tasks
         features_avg = torch.zeros_like(features[self.tasks[0][0]])
         for task in self.tasks:
             features_avg += features[task[0]]
-        features_avg = features_avg / len(features)
+        features_avg /= len(features)
+
         losses = torch.zeros(len(self.tasks)).to(self.device)
         feature_losses = torch.zeros(len(self.tasks)).to(self.device)
+
+        # Compute losses for each task
         for i, task in enumerate(self.tasks):
             if task[0] == "semantic_segmentation":
                 seg_loss = self.seg_loss(preds[task[0]], targets[task[0]].to(self.device, dtype=torch.long))
                 losses[i] = seg_loss
                 feature_losses[i] = self.mse(features[task[0]], features_avg)
+
             elif task[0] == "lane_marking":
                 lane_loss = self.lane_loss(preds[task[0]].to(self.device),
                                            targets[task[0]].to(self.device, dtype=torch.long))
@@ -63,8 +89,7 @@ class Multi_task_loss_fn(nn.Module):
                 losses[i] = yolo_loss
                 feature_losses[i] = self.mse(features[task[0]], features_avg)
 
-        # weights = torch.FloatTensor([(sum(losses)/(len(self.tasks)*losses[i])) for i in range(len(self.tasks))]).to(DEVICE)
-
+        # Apply task weights if WEIGHTED is True
         if self.weighted:
             loss_avg = torch.mean(losses)
             weights = torch.FloatTensor([1 + (loss_avg / losses[i]) for i in range(len(self.tasks))]).to(self.device)
@@ -72,22 +97,40 @@ class Multi_task_loss_fn(nn.Module):
         else:
             loss = losses
 
-        loss = sum(loss) + sum(feature_losses)
+        total_loss = sum(loss) + sum(feature_losses)
 
-        task_losses = losses.detach().cpu()
-
-        return loss, task_losses, sum(feature_losses)
+        return total_loss, losses.detach().cpu(), sum(feature_losses)
 
 
 class WCE_L(nn.Module):
+    """
+    Weighted Cross-Entropy Loss for segmentation tasks.
+    """
 
     def __init__(self, num_classes=20, DEVICE="cuda"):
+        """
+        Initializes the Weighted Cross-Entropy Loss function.
+
+        Args:
+            num_classes (int): Number of classes.
+            DEVICE (str): Device to use ("cuda" or "cpu").
+        """
         super(WCE_L, self).__init__()
         self.num_classes = num_classes
         self.device = DEVICE
 
     def forward(self, preds, targets, smooth=1):
+        """
+        Compute the weighted cross-entropy loss.
 
+        Args:
+            preds (Tensor): Predicted logits.
+            targets (Tensor): Ground truth labels.
+            smooth (float): Smoothing factor to avoid division by zero.
+
+        Returns:
+            Tensor: Loss value.
+        """
         weights = np.ones(self.num_classes, dtype=float)
         class_id_counts = np.ones(self.num_classes, dtype=float)
         labels_array = np.asarray(targets.cpu())
@@ -105,59 +148,64 @@ class WCE_L(nn.Module):
 
 
 class YoloLoss(nn.Module):
+    """
+    YOLOv3 Loss function.
+    """
+
     def __init__(self):
+        """
+        Initializes the YOLO loss components and constants.
+        """
         super().__init__()
         self.mse = nn.MSELoss()
         self.bce = nn.BCEWithLogitsLoss()
         self.entropy = nn.CrossEntropyLoss()
         self.sigmoid = nn.Sigmoid()
 
-        # Constants signifying how much to pay for each respective part of the loss
+        # Constants signifying the importance of each loss component
         self.lambda_class = 1.5
         self.lambda_noobj = 1
         self.lambda_obj = 1.5
         self.lambda_box = 1.5
 
     def forward(self, predictions, target, anchors):
-        # Check where obj and noobj (we ignore if target == -1)
-        obj = target[..., 0] == 1  # in paper this is Iobj_i
-        noobj = target[..., 0] == 0  # in paper this is Inoobj_i
+        """
+        Compute the YOLOv3 loss.
 
-        # ======================= #
-        #   FOR NO OBJECT LOSS    #
-        # ======================= #
+        Args:
+            predictions (Tensor): Predicted outputs from the model.
+            target (Tensor): Ground truth labels.
+            anchors (Tensor): Anchors for the YOLOv3 model.
 
+        Returns:
+            Tensor: Total YOLO loss.
+        """
+        # Identify object and non-object cells
+        obj = target[..., 0] == 1
+        noobj = target[..., 0] == 0
+
+        # No-object loss
         no_object_loss = self.bce(
-            (predictions[..., 0:1][noobj]), (target[..., 0:1][noobj]),
+            predictions[..., 0:1][noobj], target[..., 0:1][noobj]
         )
 
-        # ==================== #
-        #   FOR OBJECT LOSS    #
-        # ==================== #
-
+        # Object loss
         anchors = anchors.reshape(1, 3, 1, 1, 2)
         box_preds = torch.cat([self.sigmoid(predictions[..., 1:3]), torch.exp(predictions[..., 3:5]) * anchors], dim=-1)
         ious = intersection_over_union(box_preds[obj], target[..., 1:5][obj]).detach()
         object_loss = self.mse(self.sigmoid(predictions[..., 0:1][obj]), ious * target[..., 0:1][obj])
 
-        # ======================== #
-        #   FOR BOX COORDINATES    #
-        # ======================== #
-
-        predictions[..., 1:3] = self.sigmoid(predictions[..., 1:3])  # x,y coordinates
-        target[..., 3:5] = torch.log(
-            (1e-16 + target[..., 3:5] / anchors)
-        )  # width, height coordinates
+        # Box coordinate loss
+        predictions[..., 1:3] = self.sigmoid(predictions[..., 1:3])
+        target[..., 3:5] = torch.log(1e-16 + target[..., 3:5] / anchors)
         box_loss = self.mse(predictions[..., 1:5][obj], target[..., 1:5][obj])
 
-        # ================== #
-        #   FOR CLASS LOSS   #
-        # ================== #
-
+        # Class loss
         class_loss = self.entropy(
-            (predictions[..., 5:][obj]), (target[..., 5][obj].long()),
+            predictions[..., 5:][obj], target[..., 5][obj].long()
         )
 
+        # Total loss
         return (
                 self.lambda_box * box_loss
                 + self.lambda_obj * object_loss
