@@ -115,6 +115,8 @@ Refer below table for the experiment results.
 
 - Below are the prediction results comparing the performance of the single-task model with its performance in various
   combinations of Multi-Task Neural Network (MTNN) training.
+- The predictions of MTNNs show varying accuracy levels. Prediction accuracy is measured using the dice coefficient for semantic segmentation, lane marking, and drivable area, and bounding box accuracy for object detection. Semantic segmentation generally performs better with STNN, as MTNNs often show lower accuracy for this task. Lane marking predictions with MTNNs exhibit fewer false positives, while drivable area predictions improve in distinguishing non-drivable areas. Object detection performance improves across all MTNN combinations, with fewer false positives compared to STNN predictions. Refer to circled area to compare predictions between different MTNNs and STNN combinations.
+
 
 #### Object detection 
 
