@@ -126,6 +126,21 @@ Refer below table for the experiment results.
 
 ![Alt text](docs/results/sem_results.png "MTNN sem predictions")
 
+#### Lane marking
+
+![Alt text](docs/results/lane_gt_image.png "MTNN sem predictions")
+
+![Alt text](docs/results/lane_results.png 
+
+#### Drivable area
+
+![Alt text](docs/results/drivable_gt_image.png "MTNN sem predictions")
+
+![Alt text](docs/results/drivable_results.png "MTNN sem predictions")
+
+
+
+
 
 
 
