@@ -130,13 +130,13 @@ Refer below table for the experiment results.
 
 ![Alt text](docs/results/lane_gt_image.png "MTNN sem predictions")
 
-![Alt text](docs/results/lane_results.png 
+![Alt text](docs/results/lane_result.png 
 
 #### Drivable area
 
-![Alt text](docs/results/drivable_gt_image.png "MTNN sem predictions")
+![Alt text](docs/results/dri_gt_image.png "MTNN sem predictions")
 
-![Alt text](docs/results/drivable_results.png "MTNN sem predictions")
+![Alt text](docs/results/drivable_result.png "MTNN sem predictions")
 
 
 
