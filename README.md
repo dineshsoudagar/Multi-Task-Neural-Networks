@@ -48,7 +48,7 @@ tasks simultaneously.
 
 1. Clone this repository:
    ```bash
-   [git clone https://github.com/yourusername/thesis-repo.git](https://github.com/dineshsoudagar/Multi-Task-Neural-Networks.git)
+   git clone https://github.com/dineshsoudagar/Multi-Task-Neural-Networks.git
    cd Multi-Task-Neural-Networks
 
 2. Install the required dependencies:
